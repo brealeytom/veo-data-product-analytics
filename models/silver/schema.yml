@@ -8,6 +8,8 @@ sources:
       - name: beers
       - name: breweries
       - name: beer_reviews
+      - name: iso_country_codes
+        description: "Lookup table mapping ISO country codes to full country names"
 
 models:
   - name: silver_breweries
