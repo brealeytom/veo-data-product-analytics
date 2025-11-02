@@ -1,0 +1,63 @@
+version: 2
+
+models:
+  - name: gold_beers_enriched
+    description: "Enriched beer data with review statistics, popularity scores, brewery information, and full country names"
+    columns:
+      - name: id
+        description: "Unique beer identifier"
+        tests:
+          - unique
+          - not_null
+      
+      - name: name
+        description: "Beer name"
+        tests:
+          - not_null
+      
+      - name: brewery_id
+        description: "Reference to brewery"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('silver_breweries')
+              field: id
+      
+      - name: brewery_name
+        description: "Name of the brewery"
+      
+      - name: country_code
+        description: "ISO 2-letter country code"
+      
+      - name: country_name
+        description: "Full country name from lookup table"
+      
+      - name: review_count
+        description: "Total number of reviews for this beer"
+        tests:
+          - not_null
+      
+      - name: avg_rating
+        description: "Average rating score across all reviews"
+      
+      - name: popularity_score
+        description: "Popularity score from 1-10 based on review count percentiles"
+        tests:
+          - not_null
+          - accepted_values:
+              values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+      
+      - name: is_highly_reviewed
+        description: "Flag indicating beer has 100+ reviews"
+        tests:
+          - not_null
+      
+      - name: is_highly_rated
+        description: "Flag indicating beer has average rating >= 4.0"
+        tests:
+          - not_null
+      
+      - name: has_consistent_ratings
+        description: "Flag indicating low rating variance (stddev < 0.5)"
+        tests:
+          - not_null
