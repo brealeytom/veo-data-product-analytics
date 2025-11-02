@@ -1,0 +1,70 @@
+version: 2
+
+sources:
+  - name: raw_data
+    database: veo-beer-data-product
+    schema: raw_data
+    tables:
+      - name: beers
+      - name: breweries
+      - name: beer_reviews
+
+models:
+  - name: silver_breweries
+    columns:
+      - name: id
+        tests:
+          - unique
+          - not_null
+      - name: name
+        tests:
+          - not_null
+
+  - name: silver_beers
+    columns:
+      - name: id
+        tests:
+          - unique
+          - not_null
+      - name: name
+        tests:
+          - not_null
+      - name: brewery_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('silver_breweries')
+                field: id
+      - name: abv
+        tests:
+          - not_null
+      - name: availability
+        description: "Should have no leading/trailing whitespace"
+    tests:
+      # Table-level test: verify ABV filtering worked
+      - dbt_utils.expression_is_true:
+          config:
+            severity: error
+          arguments:
+            expression: "abv < 20"
+      - dbt_utils.expression_is_true:
+          config:
+            severity: error
+          arguments:
+            expression: "LOWER(notes) NOT LIKE '%duplicate%' OR name IN ('Portsmouth Oktoberfest', 'Saint Of Circumstance Sour Mash Whiskey Barrel Aged IPA')"
+  - name: silver_beer_reviews
+    columns:
+      - name: beer_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('silver_beers')
+                field: id
+      - name: date
+        tests:
+          - not_null
+      - name: score
+        tests:
+          - not_null
