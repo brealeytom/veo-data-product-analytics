@@ -1,0 +1,8 @@
+version: 2
+
+sources:
+  - name: raw_data
+    database: veo-beer-data-product  # adjust as needed
+    schema: raw_data
+    tables:
+      - name: beers
