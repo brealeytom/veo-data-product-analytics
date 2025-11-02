@@ -38,6 +38,18 @@ review_stats AS (
     GROUP BY beer_id
 ),
 
+-- Calculate style averages for peer comparison
+style_averages AS (
+    SELECT
+        b.style,
+        AVG(rs.avg_rating) AS style_avg_rating,
+        COUNT(DISTINCT b.id) AS beers_in_style
+    FROM beers b
+    LEFT JOIN review_stats rs ON b.id = rs.beer_id
+    WHERE b.style IS NOT NULL
+    GROUP BY b.style
+),
+
 -- Calculate popularity percentiles for scoring
 popularity_percentiles AS (
     SELECT
@@ -79,6 +91,19 @@ enriched_beers AS (
         rs.most_recent_review_date,
         rs.first_review_date,
         
+        -- Style peer comparison
+        sa.style_avg_rating,
+        sa.beers_in_style,
+        ROUND(rs.avg_rating - sa.style_avg_rating, 2) AS rating_vs_style_avg,
+        CASE 
+            WHEN rs.avg_rating IS NULL THEN NULL
+            WHEN rs.avg_rating > sa.style_avg_rating + 0.5 THEN 'Well Above Average'
+            WHEN rs.avg_rating > sa.style_avg_rating + 0.2 THEN 'Above Average'
+            WHEN rs.avg_rating >= sa.style_avg_rating - 0.2 THEN 'Average'
+            WHEN rs.avg_rating >= sa.style_avg_rating - 0.5 THEN 'Below Average'
+            ELSE 'Well Below Average'
+        END AS rating_tier_vs_style,
+        
         -- Popularity score (1-10 scale based on percentile of review count)
         CASE 
             WHEN rs.review_count IS NULL THEN 1
@@ -96,13 +121,14 @@ enriched_beers AS (
         
         -- Derived flags
         CASE WHEN rs.review_count >= 100 THEN TRUE ELSE FALSE END AS is_highly_reviewed,
-        CASE WHEN rs.avg_rating >= 4.0 THEN TRUE ELSE FALSE END AS is_highly_rated,
+        CASE WHEN rs.avg_rating >= 7.5 THEN TRUE ELSE FALSE END AS is_highly_rated,
         CASE WHEN rs.rating_stddev < 0.5 THEN TRUE ELSE FALSE END AS has_consistent_ratings
         
     FROM beers b
     LEFT JOIN breweries br ON b.brewery_id = br.id
     LEFT JOIN review_stats rs ON b.id = rs.beer_id
     LEFT JOIN country_lookup cl ON UPPER(b.country) = UPPER(cl.alpha_2)
+    LEFT JOIN style_averages sa ON b.style = sa.style
 )
 
 SELECT * FROM enriched_beers

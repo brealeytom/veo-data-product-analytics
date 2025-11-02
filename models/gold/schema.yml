@@ -40,12 +40,31 @@ models:
       - name: avg_rating
         description: "Average rating score across all reviews"
       
+      - name: style_avg_rating
+        description: "Average rating for all beers in this style (peer group average)"
+      
+      - name: beers_in_style
+        description: "Total number of beers in this style category"
+      
+      - name: rating_vs_style_avg
+        description: "Difference between this beer's rating and its style average (positive = above average)"
+      
+      - name: rating_tier_vs_style
+        description: "Categorical rating tier compared to style peers"
+        tests:
+          - accepted_values:
+              values: ['Well Above Average', 'Above Average', 'Average', 'Below Average', 'Well Below Average']
+              config:
+                severity: warn
+      
       - name: popularity_score
         description: "Popularity score from 1-10 based on review count percentiles"
         tests:
           - not_null
-          - accepted_values:
-              values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+          - dbt_utils.accepted_range:
+              min_value: 1
+              max_value: 10
+              inclusive: true
       
       - name: is_highly_reviewed
         description: "Flag indicating beer has 100+ reviews"
