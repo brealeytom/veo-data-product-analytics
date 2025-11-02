@@ -6,3 +6,5 @@ sources:
     schema: raw_data
     tables:
       - name: beers
+      - name: breweries
+      - name: beer_reviews
