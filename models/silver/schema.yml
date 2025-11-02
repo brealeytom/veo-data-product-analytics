@@ -2,9 +2,42 @@ version: 2
 
 sources:
   - name: raw_data
-    database: veo-beer-data-product  # adjust as needed
+    database: veo-beer-data-product
     schema: raw_data
     tables:
       - name: beers
       - name: breweries
       - name: beer_reviews
+
+models:
+  - name: silver_breweries
+    columns:
+      - name: id
+        tests:
+          - unique
+          - not_null
+
+  - name: silver_beers
+    columns:
+      - name: id
+        tests:
+          - unique
+          - not_null
+      - name: brewery_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('silver_breweries')
+              field: id
+      - name: abv
+        tests:
+          - not_null
+
+  - name: silver_beer_reviews
+    columns:
+      - name: beer_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('silver_beers')
+              field: id
